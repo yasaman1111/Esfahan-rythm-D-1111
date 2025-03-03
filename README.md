@@ -24,7 +24,7 @@ This project analyzes the concept of **rhythm** in the walls of a city using **F
 ## How It Works
 
 1. **Fourier Series Data:**  
-   - The project includes 100 Fourier series, each with specific parameters \(\omega\), \(A\), \(B\), and \(C\).  
+   - The project includes 98 Fourier series, each with specific parameters \(\omega\), \(A\), \(B\), and \(C\).  
    - These series were derived from analyzing traditional architecture and capturing its rhythmic properties.
 
 2. **Selecting the Best Series:**  
