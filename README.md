@@ -5,7 +5,7 @@
 
 # Rhythm Analysis in Architectural Walls
 
-This project analyzes the concept of **rhythm** in the walls of a city using **Fourier series**. By extracting relevant data from these traditional structures, we have generated 100 different Fourier series. Users can input a total distance (in meters) and the desired number of peaks, and the application will select the Fourier series whose period is closest to that spacing. Additionally, users can upload an image to overlay on the peak points of the resulting curve.
+This project analyzes the concept of **rhythm** in the walls of a city using **Fourier series**. By extracting relevant data from these traditional structures, we have generated 98 different Fourier series. Users can input a total distance (in meters) and the desired number of peaks, and the application will select the Fourier series whose period is closest to that spacing. Additionally, users can upload an image to overlay on the peak points of the resulting curve.
 
 ## Features
 
