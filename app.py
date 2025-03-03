@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 from PIL import Image
 
-# List of 100 Fourier series (replace with your actual data)
+# List of 98 Fourier series 
 fourier_series = [
     {"num": 1, "A": 1.312, "B": 1.09, "omega": 0.56, "C": -0.38},
     {"num": 2, "A": 1.126, "B": 1.09, "omega": 0.57, "C": -0.29},
@@ -123,7 +123,7 @@ def fourier_function(x, series):
     return A + B * np.cos(omega * x) + C * np.sin(omega * x)
 
 # Streamlit App
-st.title("Rhythm Analysis in Esafahan Architecture Using Fourier Series")
+st.title("Rhythm Analysis in Esfahan Architecture Using Fourier Series")
 st.markdown("""
 Welcome to this interactive tool!
 
