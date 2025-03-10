@@ -2,11 +2,12 @@ import math
 import numpy as np
 import streamlit as st
 import matplotlib.pyplot as plt
+from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 from PIL import Image
 
-# List of 98 Fourier series (namune)
+# List of 98 Fourier series 
 fourier_series = [
-     {"num": 1, "A": 1.312, "B": 1.09, "omega": 0.56, "C": -0.38},
+    {"num": 1, "A": 1.312, "B": 1.09, "omega": 0.56, "C": -0.38},
     {"num": 2, "A": 1.126, "B": 1.09, "omega": 0.57, "C": -0.29},
     {"num": 3, "A": 0.44, "B": 0.66, "omega": 0.59, "C": -0.19},
     {"num": 4, "A": 2.12, "B": 0.53, "omega": 0.39, "C": -1.28},
@@ -105,11 +106,16 @@ fourier_series = [
     {"num": 97, "A": 1.15, "B": 0.23, "omega": 1.48, "C": 0.24},
     {"num": 98, "A": 0.68, "B": 0.30, "omega": 0.42, "C": -0.48},
     {"num": 99, "A": 1.81, "B": -0.0034, "omega": 1.598, "C": 0.025},
-    {"num": 100, "A": 0.99, "B": 1.24, "omega": 0.55, "C": -1.35} 
+    {"num": 100, "A": 0.99, "B": 1.24, "omega": 0.55, "C": -1.35}
 ]
 
 def compute_period(omega):
     return 2 * math.pi / omega
+
+def compute_first_peak(omega, B, C):
+    phi = math.atan2(C, B)
+    adjusted_phi = phi % (2 * math.pi)
+    return adjusted_phi / omega
 
 def fourier_function(x, series):
     A = series["A"]
@@ -123,7 +129,13 @@ st.title("Rhythm Analysis in Esfahan Architecture Using Fourier Series")
 st.markdown("""
 Welcome to this interactive tool!
 
-This application examines 98 different Fourier series, finds the one whose period is closest to your desired spacing, and plots it.
+Here you can:
+- Specify the total distance (in meters) and the number of peaks you want.
+- Upload an image (e.g., a photo ).
+
+**Objective**:
+This tool examines 98 different Fourier series, finds the one whose period (distance between peaks) is closest to your desired spacing, and plots it. Additionally, you can overlay a chosen image on the peak points of the curve if you wish.
+
 ---
 """)
 
@@ -131,12 +143,12 @@ This application examines 98 different Fourier series, finds the one whose perio
 total_distance = st.number_input("Total distance (meters):", min_value=0.1, value=50.0, step=0.1)
 num_peaks = st.number_input("Number of peaks:", min_value=2, value=5, step=1)
 
-# Optional file uploader (not used for overlaying peaks here)
-uploaded_file = st.file_uploader("Upload an image (optional)", type=["png", "jpg", "jpeg"])
+# File uploader for image
+uploaded_file = st.file_uploader("Upload an image to overlay at peak points", type=["png", "jpg", "jpeg"])
 
 if total_distance and num_peaks:
-    # Desired interval between peaks (if endpoints are considered peaks)
     desired_interval = total_distance / (num_peaks - 1)
+    st.write(f"Desired spacing between peaks: {desired_interval:.4f} meters")
     
     best_series = None
     min_diff = float('inf')
@@ -152,28 +164,49 @@ if total_distance and num_peaks:
             best_series["period"] = period
 
     if best_series:
+        x_first = compute_first_peak(best_series["omega"], best_series["B"], best_series["C"])
+        
         st.write("### Selected Fourier Series:")
         st.write(f"**Series Number**: {best_series['num']}")
         st.latex(rf"Y = {best_series['A']} + {best_series['B']}\cos\left({best_series['omega']}x\right) + {best_series['C']}\sin\left({best_series['omega']}x\right)")
         
-        # Compute original period of the selected series
-        P_orig = compute_period(best_series["omega"])
-        # Define scaling factor to force effective period to be desired_interval
-        scaling_factor = desired_interval / P_orig
+        st.write(f"**Calculated Period (spacing between peaks)**: {best_series['period']:.4f} meters")
+        st.write(f"**Recommended x-value for the first peak (from x=0)**: {x_first:.4f} meters")
         
-        # Generate x values and apply transformation
+        # Plot the selected Fourier function
         x_vals = np.linspace(0, total_distance, 1000)
-        # Transform x for Fourier function: x' = x / scaling_factor
-        y_vals = fourier_function(x_vals / scaling_factor, best_series)
+        y_vals = fourier_function(x_vals, best_series)
         
         fig, ax = plt.subplots(figsize=(10, 5))
         ax.plot(x_vals, y_vals, label=f"Fourier Series #{best_series['num']}")
         ax.set_xlabel("x (meters)")
         ax.set_ylabel("Y")
-        ax.set_title("Fourier Series Curve with Adjusted Peak Spacing")
+        ax.set_title("Selected Fourier Series Curve")
         ax.grid(True)
         ax.legend()
         
+        # Overlay the uploaded image at peak positions if available
+        if uploaded_file is not None:
+            try:
+                img = Image.open(uploaded_file)
+            except Exception as e:
+                st.write("Error loading image:", e)
+                img = None
+            if img:
+                peak_positions = []
+                current_peak = x_first
+                while current_peak <= total_distance:
+                    peak_positions.append(current_peak)
+                    current_peak += best_series["period"]
+                
+                zoom_factor = 0.1  # Adjust as needed
+                im = OffsetImage(np.array(img), zoom=zoom_factor)
+                for xp in peak_positions:
+                    yp = fourier_function(xp, best_series)
+                    ab = AnnotationBbox(im, (xp, yp), frameon=False)
+                    ax.add_artist(ab)
+                    ax.plot(xp, yp, 'ro')
+                    
         st.pyplot(fig)
     else:
         st.write("No suitable Fourier series found.")
